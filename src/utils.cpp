@@ -92,3 +92,14 @@ std::string getOutputDirectory(const std::string& pathU8, const std::string& nam
         return "";
     }
 }
+
+void azureParentDirectory(const char* file)
+{
+    std::string filePath = utf8ToAcp(file);
+    if (filePath.empty()) { return; }
+    fs::path fsPath(filePath);
+    fs::path parentPath = fsPath.parent_path();
+    if (!fs::exists(parentPath)) { fs::create_directories(parentPath); }
+}
+
+bool fileExits(const char* file) { return fs::exists(utf8ToAcp(file)); }

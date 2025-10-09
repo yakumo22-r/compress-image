@@ -1,4 +1,65 @@
-#include "ctx.h"
+#include <corecrt_io.h>
+#include <fmt/format.h>
+#include <ole2.h>
+#include <vips/vips.h>
+
+#include "fmt/base.h"
+#include "compress_img.h"
+#include "compress_img_api.h"
+#include "compress_img_render.h"
+#include "gui.h"
+#include "img_bg_1.h"
+#include "utils.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
+
+namespace app = compress_img;
+
+void f(){}
+
+static void show_error_msg(int error, const char* msg)
+{
+    auto& r = app::getTextRes();
+    std::string message = fmt::format("{}: {}\n {}: {}\n", r.errcodeLable, error, r.msgLable, msg);
+    messageBox(r.glfwError, message.c_str(), 2);
+}
+
+int main(int argc, char** argv)
+{
+    app::libVipsInit(argv[0]);
+
+    HRESULT hr = OleInitialize(NULL);
+    if (FAILED(hr)) {
+        fmt::println("OleInitialize failed hr:{}", long(hr));
+        return -1;
+    }
+
+    int err = GUI::renderInit(app::getTextRes().windowTitle, 480, 600, show_error_msg);
+    // app::renderInit();
+    if(err){
+        messageBox("Error", "renderInit Error", 2);
+        return -1;
+    }
+
+    GUI::imgBgData = &res_bg1;
+
+    GUI::renderLoop(app::page_start, app::page, app::page_end);
+    // app::renderLoop();
+
+    OleUninitialize();
+    app::libVipsExit();
+    // app::renderExit();
+    GUI::renderExit();
+    return 0;
+}
+
+
+#include "compress_img.h"
+
+namespace compress_img {
+
 // #define YKM22_LOCALE_CN
 TextRes MakeTextRes()
 {
@@ -53,4 +114,6 @@ const TextRes& getTextRes()
 {
     static TextRes r = MakeTextRes();
     return r;
+}
+
 }

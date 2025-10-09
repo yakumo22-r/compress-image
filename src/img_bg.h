@@ -2,12 +2,15 @@
 #define YKM22_IMG_BG_H
 
 #include <cstddef>
-const unsigned char* get_img_bg_data();
-size_t get_img_bg_size();
+
+struct ImgData{
+    const unsigned char* data;
+    size_t size;
+};
 
 extern struct GlImgObj;
 
-GlImgObj* createImgBgObject();
+GlImgObj* createImgBgObject(const unsigned char* imgData, size_t imgSize);
 void deleteImgBgObject(GlImgObj* o);
 void drawImgBg(GlImgObj* o);
 

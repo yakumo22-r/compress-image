@@ -1,3 +1,0 @@
-- [ ] drag file | directory
-- [ ] ui design
-- [ ] rename

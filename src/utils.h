@@ -12,4 +12,7 @@ std::string filePicker(const std::string& inputPath);
 
 std::string getOutputDirectory(const std::string& path, const std::string& name);
 
+void azureParentDirectory(const char* file);
+bool fileExits(const char* file);
+
 #endif // !YKM_UTILS_H

@@ -1,10 +1,10 @@
-#include "render.h"
-#include "ctx.h"
+#include "compress_img_render.h"
+#include "compress_img.h"
 #include "file_drop.h"
 #include "fmt/base.h"
 #include "fmt/format.h"
-#include "img.h"
-#include "img_bg.h"
+#include "compress_img_api.h"
+#include "gui.h"
 #include "utils.h"
 
 #include <imgui.h>
@@ -19,77 +19,23 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-float main_scale = 0;
-const char* glsl_version = "#version 130";
+namespace compress_img{
 ImGuiIO* io = nullptr;
 GLFWwindow* window = nullptr;
-static std::vector<std::string> dropped_files;
-void glfw_drop_callback(GLFWwindow* window, int count, const char** paths);
 
 DropHelper drop;
-ImFont* fontBig = nullptr;
 
-int renderInit()
+void page_start()
 {
-
-
-    auto& r = getTextRes();
-    glfwSetErrorCallback(show_error_msg);
-    if (!glfwInit()) return 1;
-
-    // GL 3.0 + GLSL 130
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor()); // Valid on GLFW 3.3+ only
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    io = &ImGui::GetIO();
-    io->IniFilename = nullptr;
-    (void)io;
-    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style +
-                                     // calling this again)
-    style.FontScaleDpi =
-        main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
-
-    window = glfwCreateWindow((int)(480), (int)(600), r.windowTitle, nullptr, nullptr);
-    if (window == nullptr) return 1;
-    // glfwSetDropCallback(window, glfw_drop_callback);
-    drop.registerDrop(window);
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
-
-    // init openGL api
-    if (glewInit() != GLEW_OK) {
-        fmt::println("GLEW init failed!\n");
-    }
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    if (fileExits("c:\\Windows\\Fonts\\msyh.ttc")) {
-        fontBig = io->Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\msyh.ttc", 24.0f, nullptr, io->Fonts->GetGlyphRangesChineseFull());
-    } else {
-        fontBig = io->Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\msyh.ttf", 24.0f, nullptr, io->Fonts->GetGlyphRangesChineseFull());
-    }
-
-    IM_ASSERT(fontBig != nullptr);
-    return 0;
+    io = GUI::io;
+    window = GUI::window;
+    drop.registerDrop(GUI::window);
 }
 
 void HoverBrightButton();
 void DrawTextInputWithFilePicker(const char* title, std::string& inputText, const char* buttonLabel = "Browse");
 
-void Page()
+void page()
 {
     ImGui::Spacing();
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(getTextRes().windowTitle).x) * 0.5f);
@@ -100,7 +46,6 @@ void Page()
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.6f, 1.0f));  // Transparent button background
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.9f, 0.8f, 0.7f, 1.0f));  // Light gray border
     HoverBrightButton();
-    std::string inputPath;
     DrawTextInputWithFilePicker(getTextRes().UIinputPath, getAppContext().inputPath, "~");
     DrawTextInputWithFilePicker(getTextRes().UIoutputPath, getAppContext().outputPath, "~");
 
@@ -261,74 +206,8 @@ void HoverBrightButton()
     ImGui::SetCursorPos(ImVec2(0, pos.y + region_size.y));
 }
 
-int renderLoop()
+void page_end()
 {
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.70f, 1.00f);
-
-    GlImgObj* bgImg = createImgBgObject();
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
-            ImGui_ImplGlfw_Sleep(10);
-            continue;
-        }
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        // make imgui occupy the entire window
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(io->DisplaySize.x, io->DisplaySize.y));
-        ImGui::Begin("##Fullscreen", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_NoBringToFrontOnFocus);
-
-        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-        ImGui::SetCursorPos({0, 0});
-        Page();
-
-        ImGui::End();
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        // glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        // glClear(GL_COLOR_BUFFER_BIT);
-        drawImgBg(bgImg);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        glfwSwapBuffers(window);
-    }
-    // glDeleteTextures(1, &texture);
-    deleteImgBgObject(bgImg);
-    return 0;
-}
-int renderExit()
-{
-    // Cleanup
     drop.removeDrop();
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    return 0;
 }
-
-void glfw_drop_callback(GLFWwindow* window, int count, const char** paths)
-{
-    dropped_files.clear();
-    fmt::println("glfw_drop_callback count:{}", count);
-    for (int i = 0; i < count; i++) {
-        fmt::println("dropped file: {}", paths[i]);
-        dropped_files.push_back(paths[i]);
-    }
-}
-
-void show_error_msg(int error, const char* msg)
-{
-    auto& r = getTextRes();
-    std::string message = fmt::format("{}: {}\n {}: {}\n", r.errcodeLable, error, r.msgLable, msg);
-    messageBox(r.glfwError, message.c_str(), 2);
 }

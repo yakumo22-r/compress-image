@@ -1,6 +1,5 @@
 #include "fmt/base.h"
 #include "img_bg.h"
-#include "vips/image.h"
 
 #include <cstddef>
 #include <gl/glew.h>
@@ -15,26 +14,16 @@ struct TexInfo
     freeImgData freeFn;
 };
 
-#ifdef YKM22_IMG_BG_USE_STBI
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-TexInfo loadTexByStbi()
-{
-    TexInfo info;
-    info.data = stbi_load_from_memory(get_img_bg_data(), (int)get_img_bg_size(), &info.width, &info.height, &info.nrChannels, 0);
-    info.freeFn = stbi_image_free;
-    return info;
-}
-#endif
-
+#ifdef YKM22_IMG_BG_USE_LIBVIPS
+#include "vips/image.h"
 void libvipsFreeData(void* ptr) { g_free(ptr); }
 
 #include <vips/vips.h>
-TexInfo loadTexByLibvips()
+TexInfo loadTexByLibvips(const unsigned char* imgData, size_t imgSize)
 {
     TexInfo info;
     info.data = nullptr;
-    VipsImage* img = vips_image_new_from_buffer(get_img_bg_data(), get_img_bg_size(), NULL, NULL);
+    VipsImage* img = vips_image_new_from_buffer(imgData,imgSize, NULL, NULL);
     if (!img) {
         fmt::println("vips_image_new_from_buffer failed");
         return info;
@@ -56,6 +45,17 @@ TexInfo loadTexByLibvips()
     g_object_unref(img);
     return info;
 }
+#else
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+TexInfo loadTexByStbi(const unsigned char* imgData, size_t imgSize)
+{
+    TexInfo info;
+    info.data = stbi_load_from_memory(imgData, (int)imgSize, &info.width, &info.height, &info.nrChannels, 0);
+    info.freeFn = stbi_image_free;
+    return info;
+}
+#endif
 
 struct GlImgObj
 {
@@ -92,12 +92,12 @@ float vertices[] = {
 };
 unsigned int indices[] = {0, 1, 3, 1, 2, 3};
 
-unsigned int createTexture()
+unsigned int createTexture(const unsigned char* imgData, size_t imgSize)
 {
-#ifdef YKM22_IMG_BG_USE_STBI
-    TexInfo info = loadTexByStbi();
+#ifdef YKM22_IMG_BG_USE_LIBVIPS
+    TexInfo info = loadTexByLibvips(imgData, imgSize);
 #else
-    TexInfo info = loadTexByLibvips();
+    TexInfo info = loadTexByStbi(imgData, imgSize);
 #endif
     // unsigned char* data = stbi_load("bg.png", &width, &height, &nrChannels, 0);
     unsigned int texId;
@@ -164,10 +164,10 @@ void createVertex(GlImgObj& o)
     glEnableVertexAttribArray(1);
 }
 
-GlImgObj* createImgBgObject()
+GlImgObj* createImgBgObject(const unsigned char* imgData, size_t imgSize)
 {
     GlImgObj* o = new GlImgObj();
-    o->texId = createTexture();
+    o->texId = createTexture(imgData, imgSize);
     o->shaderProgram = createShaderProgram();
     createVertex(*o);
     return o;

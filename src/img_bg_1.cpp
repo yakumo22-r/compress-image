@@ -1,4 +1,4 @@
-#include "img_bg.h"
+#include "img_bg_1.h"
 #include <cstddef>
 #ifdef __cplusplus
 extern "C" {
@@ -5195,10 +5195,4 @@ const unsigned char imageBytes[] = {
 }
 #endif
 
-const unsigned char * get_img_bg_data(){
-    return imageBytes;
-}
-
-size_t get_img_bg_size(){
-    return sizeof(imageBytes);
-}
+ImgData res_bg1 = {imageBytes, sizeof(imageBytes)};

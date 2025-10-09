@@ -1,7 +1,9 @@
-#ifndef YKM_IMG_H
-#define YKM_IMG_H
+#ifndef YKM22_COMPRESS_IMAGE_API_H
+#define YKM22_COMPRESS_IMAGE_API_H
 
 #include <string>
+
+namespace compress_img {
 enum class ImgFormat
 {
     PNG = 0,
@@ -21,9 +23,6 @@ int libVipsInit(const char* name);
 void libVipsExit();
 int imgCompress(CompressInfo* i);
 
-void azureParentDirectory(const char* file);
-bool fileExits(const char* file);
-
 bool imgCompressRun();
 
 extern class BinImageImpl;
@@ -42,5 +41,6 @@ class BinImage
     BinImageImpl* impl;
     unsigned char* data;
 };
+} // namespace compress_img
 
-#endif // !YKM_IMG_H
+#endif // !YKM22_COMPRESS_IMAGE_API_H

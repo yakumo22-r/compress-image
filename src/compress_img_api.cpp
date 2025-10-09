@@ -1,5 +1,5 @@
-#include "img.h"
-#include "ctx.h"
+#include "compress_img_api.h"
+#include "compress_img.h"
 
 #include <corecrt_io.h>
 #include <string>
@@ -14,6 +14,8 @@
 namespace fs = std::filesystem;
 
 #include "utils.h"
+
+namespace compress_img {
 
 int libVipsInit(const char* name)
 {
@@ -61,15 +63,6 @@ int imgCompress(CompressInfo* i)
 
     g_object_unref(in);
     return 0;
-}
-
-void azureParentDirectory(const char* file)
-{
-    std::string filePath = utf8ToAcp(file);
-    if (filePath.empty()) { return; }
-    fs::path fsPath(filePath);
-    fs::path parentPath = fsPath.parent_path();
-    if (!fs::exists(parentPath)) { fs::create_directories(parentPath); }
 }
 
 std::string getSuffixStr(ImgFormat format)
@@ -164,8 +157,6 @@ bool imgCompressRun()
     return true;
 }
 
-bool fileExits(const char* file) { return fs::exists(utf8ToAcp(file)); }
-
 class BinImageImpl
 {
   public:
@@ -201,4 +192,5 @@ BinImage::~BinImage()
     if (impl->out) { g_object_unref(impl->out); }
     if (impl->image) { g_object_unref(impl->image); }
     delete impl;
+}
 }

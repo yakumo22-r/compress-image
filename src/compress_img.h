@@ -1,8 +1,10 @@
-#ifndef YKM22_CTX_H
-#define YKM22_CTX_H
+#ifndef YKM22_COMPRESS_IMAGE_H
+#define YKM22_COMPRESS_IMAGE_H
 
-#include "img.h"
+#include "compress_img_api.h"
 #include <string>
+namespace compress_img {
+
 struct AppContext
 {
     std::string inputPath;
@@ -36,5 +38,6 @@ struct TextRes
 
 AppContext& getAppContext();
 const TextRes& getTextRes();
+} // namespace compress_img
 
-#endif // !YKM22_CTX_H
+#endif // !YKM22_COMPRESS_IMAGE_H
