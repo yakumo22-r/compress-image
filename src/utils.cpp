@@ -7,12 +7,12 @@
 #include <windows.h>
 #endif
 
-std::string utf8ToAcp(const char* src)
+std::string utf8ToAcp(std::string_view src)
 {
 #ifdef _WIN32
-    int wlen = MultiByteToWideChar(CP_UTF8, 0, src, -1, nullptr, 0);
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, src.data(), -1, nullptr, 0);
     std::wstring wstr(wlen, 0);
-    MultiByteToWideChar(CP_UTF8, 0, src, -1, &wstr[0], wlen);
+    MultiByteToWideChar(CP_UTF8, 0, src.data(), -1, &wstr[0], wlen);
     int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string acpStr(len, 0);
     WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &acpStr[0], len, nullptr, nullptr);
@@ -20,12 +20,12 @@ std::string utf8ToAcp(const char* src)
 #endif // _WIN32
 }
 
-std::string acpToUtf8(const char* src)
+std::string acpToUtf8(std::string_view src)
 {
 #ifdef _WIN32
-    int wlen = MultiByteToWideChar(CP_ACP, 0, src, -1, nullptr, 0);
+    int wlen = MultiByteToWideChar(CP_ACP, 0, src.data(), -1, nullptr, 0);
     std::wstring wstr(wlen, 0);
-    MultiByteToWideChar(CP_ACP, 0, src, -1, &wstr[0], wlen);
+    MultiByteToWideChar(CP_ACP, 0, src.data(), -1, &wstr[0], wlen);
     int len = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string acpStr(len, 0);
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &acpStr[0], len, nullptr, nullptr);
@@ -76,21 +76,20 @@ std::string filePicker(const std::string& inputPath)
 namespace fs = std::filesystem;
 std::string getOutputDirectory(const std::string& pathU8, const std::string& nameU8)
 {
-    std::string path = utf8ToAcp(pathU8.c_str());
-    std::string name = utf8ToAcp(nameU8.c_str());
+    std::string path = utf8ToAcp(pathU8);
+    std::string name = utf8ToAcp(nameU8);
     fs::path p(path);
+    std::string res = "";
     if (fs::is_directory(p)) {
-        return (p / name).string();
+        res = acpToUtf8((p / name).string().c_str());
     } else if (fs::is_regular_file(p)) {
         auto parent = p.parent_path();
-        if (parent.empty()) {
-            return "";
-        } else {
-            return acpToUtf8((parent / name).string().c_str());
-        }
-    } else {
-        return "";
+        if (!parent.empty()) {
+            res = acpToUtf8((parent / name).string().c_str());
+        }  
     }
+    fmt::println("auto set output directory {}", res);
+    return res;
 }
 
 void azureParentDirectory(const char* file)

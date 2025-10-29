@@ -65,7 +65,7 @@ TextRes MakeTextRes()
 {
     TextRes r;
 #ifdef YKM22_LOCALE_CN
-    r.windowTitle = "图片压缩 v1.0.0 @yakumo22";
+    r.windowTitle = "图片压缩 v1.1.0 @yakumo22";
     r.errcodeLable = "错误码";
     r.msgLable = "消息";
     r.glfwError = "GLFW错误";
@@ -83,7 +83,7 @@ TextRes MakeTextRes()
     r.RunPathError2 = "文件路径必须是png,jpeg,webp";
     r.RunPathError3 = "输出路径不存在且无法创建";
 #else
-    r.windowTitle = "Image Compress v1.0.0 @yakumo22";
+    r.windowTitle = "Image Compress v1.1.0 @yakumo22";
     r.errcodeLable = "Errcode";
     r.msgLable = "Message";
     r.glfwError = "GLFW Error";

@@ -3,8 +3,8 @@
 
 #include <string>
 
-std::string utf8ToAcp(const char* src);
-std::string acpToUtf8(const char* src);
+std::string utf8ToAcp(std::string_view src);
+std::string acpToUtf8(std::string_view src);
 // level: 0-info, 1-warning, 2-error
 void messageBox(const char* title, const char* msg, int level);
 

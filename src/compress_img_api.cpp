@@ -77,27 +77,36 @@ std::string getSuffixStr(ImgFormat format)
     }
 }
 
-std::string getImgOutFilePath(const char* srcFile, const char* _outDir, ImgFormat format)
+std::string getImgOutFilePath(std::string_view srcFile, std::string_view _outDir, ImgFormat format)
 {
+    // fmt::println("getImgOutFilePath srcFile => {}", srcFile);
+    // fmt::println("getImgOutFilePath outDir => {}", _outDir);
+    fmt::println("getImgOutFilePath TEST => 0");
     fs::path srcPath(srcFile);
     fs::path outDir(_outDir);
+    fmt::println("getImgOutFilePath TEST => 1");
     fs::path fileName = srcPath.stem();
     std::string suffix = getSuffixStr(format);
-    std::string outPath = (outDir / fileName).string() + suffix;
-
-    return outPath.c_str();
+    std::string outPath = acpToUtf8((outDir / fileName).string() + suffix);
+    fmt::println("getImgOutFilePath TEST DONE => {}", outPath);
+    return outPath;
 }
 
 bool imgCompressRun()
 {
     auto& ctx = getAppContext();
     auto text = getTextRes();
-    std::string inputPath = utf8ToAcp(ctx.inputPath.c_str());
-    std::string outputPath = utf8ToAcp(ctx.outputPath.c_str());
+    std::string inputPath = utf8ToAcp(ctx.inputPath);
+    std::string outputPath = utf8ToAcp(ctx.outputPath);
+    fmt::println("imgCompressRun Test 1");
+    fmt::println("imgCompressRun inputPath: {}", ctx.inputPath);
+    fmt::println("imgCompressRun outputPath: {}", ctx.outputPath);
     std::vector<std::string> inputFiles;
 
     try {
+        fmt::println("imgCompressRun create_directories CALL");
         fs::create_directories(outputPath);
+        fmt::println("imgCompressRun create_directories CALLOVER");
     } catch (std::exception& e) {
         std::string msg = fmt::format("{}\nmsg: {}", text.RunPathError3, e.what());
         messageBox(text.ErrorTitle, msg.c_str(), 2);
@@ -146,8 +155,9 @@ bool imgCompressRun()
             outPathStr.append(fmt::format("{:0{}d}", count, ctx.renameWidth));
             outPathStr.append(getSuffixStr(info.outFormat));
         } else {
-            outPathStr.append(getImgOutFilePath(info.srcFile, ctx.outputPath.c_str(), info.outFormat));
+            outPathStr.append(getImgOutFilePath(file, outputPath.c_str(), info.outFormat));
         }
+
 
         info.outFile = outPathStr.c_str();
         if (imgCompress(&info)) { return -1; }

@@ -136,7 +136,7 @@ std::set<std::string> split_by_space(const std::string& input) {
 // render page
 namespace fs = std::filesystem;
 void do_batch_rename(){
-    std::string inputPath = utf8ToAcp(ctx.inputPath.c_str());
+    std::string inputPath = utf8ToAcp(ctx.inputPath);
     if (ctx.inputPath.empty() || !fs::is_directory(fs::path(inputPath))) {
         messageBox(text.ErrorNamme, text.Error1, 2);
         return;
@@ -162,7 +162,7 @@ void do_batch_rename(){
                 continue;
             }
             std::string newName = fmt::format("{}{:0{}d}{}",ctx.prefix ? ctx.renamePrefix : "",i,ctx.renameWidth,acpToUtf8(ext.c_str()));
-            newName = utf8ToAcp(newName.c_str());
+            newName = utf8ToAcp(newName);
             i++;
 
             if(newName != oldName){
@@ -176,7 +176,7 @@ void do_batch_rename(){
 
 void assgin_auto_input_path(const std::string& srcUtf){
     fmt::println("assgin_auto_input_path: {}", srcUtf);
-    fs::path p(utf8ToAcp(srcUtf.c_str()));
+    fs::path p(utf8ToAcp(srcUtf));
     if(fs::is_regular_file(p)){
         ctx.inputPath = acpToUtf8(p.parent_path().string().c_str());
     }else{
