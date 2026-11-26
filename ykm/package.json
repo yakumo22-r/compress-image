@@ -1,0 +1,16 @@
+{
+  "name": "ykm-app-tooling",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/ykm-app.mjs build apps/compress-image",
+    "typecheck": "tsc -p apps/compress-image/tsconfig.json",
+    "dev": "node tools/ykm-app.mjs dev apps/compress-image",
+    "package": "node tools/ykm-app.mjs package apps/compress-image --mode release"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "json5": "^2.2.3",
+    "typescript": "^5.9.0"
+  }
+}

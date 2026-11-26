@@ -1,0 +1,18 @@
+{
+  schemaVersion: 1,
+  app: {
+    id: "dev.ykm.compress-image",
+    name: "图片压缩",
+    version: "0.1.0",
+    executable: "compress-image",
+    icon: "assets/app.ico",
+  },
+  runtime: { mode: "gui" },
+  build: { language: "typescript", outDir: "dist", sourcemap: true, minify: false },
+  sessions: [
+    { name: "main", role: "main", entry: "src/main.ts" },
+    { name: "ui", role: "ui", entry: "src/ui.ts" },
+    { name: "worker", role: "worker", entry: "src/worker.ts" },
+  ],
+  permissions: ["fs.asset", "fs.data", "desktop.filedrop"],
+}

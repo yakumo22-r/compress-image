@@ -1,0 +1,9 @@
+build/
+.xmake/
+node_modules/
+examples/ts-app/dist/
+apps/*/dist/
+**/.ykm/package/
+**/.ykm/build/
+**/.ykm/generated/
+/imgui.ini
