@@ -89,7 +89,7 @@ const settings = new Column({ key: "settings", gap: 3 }).append(
   ),
 );
 form.append(
-  new Text({ key: "title", text: "图片压缩 · yakumo22 · v0.1.0", textAlign: "center" }),
+  new Text({ key: "title", text: "图片压缩 · yakumo22 · v1.2.0", textAlign: "center" }),
   drop,
   settings,
   center(new Button({ key: "run", label: "开始处理", width: 150, height: 40, onClick: run })),

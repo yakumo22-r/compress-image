@@ -3,7 +3,7 @@
   app: {
     id: "dev.ykm.compress-image",
     name: "图片压缩",
-    version: "0.1.0",
+    version: "1.2.0",
     executable: "compress-image",
     icon: "assets/app.ico",
   },
